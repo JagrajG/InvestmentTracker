@@ -33,5 +33,5 @@ Ensure the following `.jar` libraries are added to your classpath:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/investment-visualizer.git
-   cd investment-visualizer
+   git clone https://github.com/JagrajG/InvestmentTracker.git
+   cd InvestmentTracker
