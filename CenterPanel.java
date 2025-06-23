@@ -32,7 +32,7 @@ public class CenterPanel extends JPanel {
          profitLoss = new JTextField();
 
          //Unit labes
-         JLabel unitSign = new JLabel("oz");
+         JLabel unitSign = new JLabel("shares");
          JLabel dollarSign_one = new JLabel("$");
         JLabel dollarSign_two = new JLabel("$");
 
