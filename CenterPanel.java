@@ -4,6 +4,7 @@ import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.Connection;
 import java.util.Vector;
 
 public class CenterPanel extends JPanel {
@@ -12,17 +13,17 @@ public class CenterPanel extends JPanel {
     private JTextField pricePerOz;
     private JTextField spotPrice;
     private JTextField profitLoss;
-    private static JComboBox combo;
+    private JTextField metalField;
+    private boolean isSaved = false;
 
 
     int textWidth = 70;
     int textHeight = 50;
     CenterPanel(){
 
-        //ComboBox
-        String[] comboFeilds = {"Silver", "Gold"};
+        metalField = new JTextField();
+        metalField.setPreferredSize(new Dimension(textWidth, textHeight));
 
-        combo = new JComboBox(comboFeilds);
         //Text Felids
          amount = new JTextField();
          purchasePrice = new JTextField();
@@ -58,8 +59,8 @@ public class CenterPanel extends JPanel {
 
         //Panel add components:
 
-        //Gold Silver Combbo box
-        this.add(combo);
+        this.add(new JLabel("Stock Name: "));
+        this.add(metalField);
 
         //amount in oz
         this.add(amount);
@@ -178,4 +179,70 @@ public class CenterPanel extends JPanel {
             profitLoss.setText("");
         }
     }
+
+    public void saveToDatabase() {
+        if (isSaved) return; // skip if already saved
+
+        try {
+            String metalType = metalField.getText();
+            double amt = Double.parseDouble(amount.getText());
+            double purchase = Double.parseDouble(purchasePrice.getText());
+            double ppo = Double.parseDouble(pricePerOz.getText());
+            double spot = Double.parseDouble(spotPrice.getText());
+            double profit = Double.parseDouble(profitLoss.getText());
+
+            String sql = "INSERT INTO investments (metal, amount, purchase_price, price_per_oz, spot_price, profit_loss) " +
+                    "VALUES (?, ?, ?, ?, ?, ?)";
+
+            try (Connection conn = DatabaseHelper.connect();
+                 java.sql.PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+                pstmt.setString(1, metalType);
+                pstmt.setDouble(2, amt);
+                pstmt.setDouble(3, purchase);
+                pstmt.setDouble(4, ppo);
+                pstmt.setDouble(5, spot);
+                pstmt.setDouble(6, profit);
+
+                pstmt.executeUpdate();
+                isSaved = true; // mark as saved
+                JOptionPane.showMessageDialog(this, "Row saved successfully!");
+            }
+
+        } catch (NumberFormatException nfe) {
+            JOptionPane.showMessageDialog(this, "Please fill in all fields correctly.");
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error saving data: " + e.getMessage());
+        }
+    }
+
+
+    public void loadFromRecord(InvestmentRecord record) {
+        metalField.setText(record.metal);
+        amount.setText(String.valueOf(record.amount));
+        purchasePrice.setText(String.valueOf(record.purchasePrice));
+        pricePerOz.setText(String.format("%.2f", record.pricePerOz));
+        spotPrice.setText(String.valueOf(record.spotPrice));
+        profitLoss.setText(String.format("%.2f", record.profitLoss));
+        profitLoss.setForeground(record.profitLoss >= 0 ? new Color(12, 122, 42) : Color.RED);
+    }
+
+    public String getMetal() {
+        return metalField.getText(); // Use combo.getSelectedItem().toString() if still using combo box
+    }
+
+    public String getAmount() {
+        return amount.getText();
+    }
+
+    public String getPurchasePrice() {
+        return purchasePrice.getText();
+    }
+
+    public String getSpotPrice() {
+        return spotPrice.getText();
+    }
+
+
+
 }
